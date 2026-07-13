@@ -4,7 +4,7 @@
 
 int main() {
     // init window
-    constexpr unsigned int windowWidth = 800;
+    constexpr unsigned int windowWidth = 800; // constexpr means @ compiled, not runtime -> save memory
     constexpr unsigned int windowHeight = 600;
     sf::RenderWindow window(sf::VideoMode({windowWidth, windowHeight}), "Gravity simulation");
 
@@ -17,11 +17,14 @@ int main() {
     sf::Vector2f position;
     sf::Vector2f velocity;
 
+    velocity.x = 150.f; // for test `
+
     sf::Clock clock; // create clock
     while (window.isOpen()) {
         sf::Time elapsed = clock.restart();
-        float deltaTime = elapsed.asSeconds(); // amount of time that passed between the last frame and the current one
-        const float gravity = 9.81f;
+        const float deltaTime = elapsed.asSeconds(); // amount of time that passed between the last frame and the current one
+        constexpr float gravity = 9.81f;
+
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
@@ -32,6 +35,7 @@ int main() {
 
         velocity.y += gravity * deltaTime;
         pos.y += velocity.y * deltaTime * 100.f; // 100.f is a scale factor for pixels
+        pos.x += velocity.x * deltaTime * 100.f;
 
         if (pos.y > 570.f) {
             pos.y = 570.f; // snap to floor
@@ -42,7 +46,24 @@ int main() {
                 velocity.y = 0.0f;
             }
         }
-        pos.x = 400;
+
+        if (pos.x > 770.f) {
+            pos.x = 770.f;
+            velocity.x *= -0.8f;
+
+            if (std::abs(velocity.x) < 2.0f) { // abs is absolute value -> cmath
+                velocity.x = 0.0f;
+            }
+        }
+
+        if (pos.x < 30.f) {
+            pos.x = 30.f;
+            velocity.x *= -0.8f;
+
+            if (std::abs(velocity.x) < 2.0f) {
+                velocity.x = 0.0f;
+            }
+        }
 
         circle.setPosition(position);
 

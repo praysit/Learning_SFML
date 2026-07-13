@@ -17,7 +17,7 @@ int main() {
     sf::Vector2f position;
     sf::Vector2f velocity;
 
-    velocity.x = 150.f; // for test `
+    velocity.x = 150.f; // for test
 
     sf::Clock clock; // create clock
     while (window.isOpen()) {

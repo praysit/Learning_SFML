@@ -9,7 +9,8 @@ int main() {
     sf::RenderWindow window(sf::VideoMode({windowWidth, windowHeight}), "Gravity simulation");
 
     // circle (particle)
-    sf::CircleShape circle(15.f);
+    float radius = 15.f;
+    sf::CircleShape circle(radius);
     circle.setOutlineColor(sf::Color::Black);
     circle.setFillColor(sf::Color::Black);
     circle.setPosition({400, 100});
@@ -37,8 +38,8 @@ int main() {
         pos.y += velocity.y * deltaTime * 100.f; // 100.f is a scale factor for pixels
         pos.x += velocity.x * deltaTime * 100.f;
 
-        if (pos.y > 570.f) {
-            pos.y = 570.f; // snap to floor
+        if (pos.y > windowHeight - radius) {
+            pos.y = windowHeight - radius; // snap to floor
             velocity.y *= -0.8f; // bounce
 
             // stop jittering if the bounce is weak
@@ -47,8 +48,8 @@ int main() {
             }
         }
 
-        if (pos.x > 770.f) {
-            pos.x = 770.f;
+        if (pos.x > windowWidth - radius) {
+            pos.x = windowWidth - radius;
             velocity.x *= -0.8f;
 
             if (std::abs(velocity.x) < 2.0f) { // abs is absolute value -> cmath
@@ -56,8 +57,8 @@ int main() {
             }
         }
 
-        if (pos.x < 30.f) {
-            pos.x = 30.f;
+        if (pos.x < radius) { // ???
+            pos.x = radius;
             velocity.x *= -0.8f;
 
             if (std::abs(velocity.x) < 2.0f) {

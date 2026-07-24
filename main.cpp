@@ -1,6 +1,24 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <vector>
 
+struct particle {
+    sf::CircleShape shape;
+    sf::Vector2f position;
+    sf::Vector2f velocity;
+    float radius = 15.f;
+
+    particle(float startX, float startY) {
+        shape.setRadius(radius);
+        shape.setOutlineColor(sf::Color::Black);
+        shape.setFillColor(sf::Color::Black);
+        shape.setOutlineThickness(5.f);
+        shape.setOrigin({15.f, 15.f});
+
+        position = {startX, startY};
+        velocity = {15.f, 0.f}; // Initial velocity
+    }
+};
 
 int main() {
     // init window
@@ -8,23 +26,20 @@ int main() {
     constexpr unsigned int windowHeight = 600;
     sf::RenderWindow window(sf::VideoMode({windowWidth, windowHeight}), "Gravity simulation");
 
-    // circle (particle)
-    float radius = 15.f;
-    sf::CircleShape circle(radius);
-    circle.setOutlineColor(sf::Color::Black);
-    circle.setFillColor(sf::Color::Black);
-    circle.setPosition({400, 100});
+    std::vector<particle> particles;
 
-    sf::Vector2f position;
-    sf::Vector2f velocity;
-
-    velocity.x = 150.f; // for test
+    particles.push_back(particle(100.f, 50.f));
+    particles.push_back(particle(200.f, 50.f));
+    particles.push_back(particle(300.f, 50.f));
+    particles.push_back(particle(400.f, 50.f));
+    particles.push_back(particle(500.f, 50.f));
+    particles.push_back(particle(600.f, 50.f));
+    particles.push_back(particle(700.f, 50.f));
 
     sf::Clock clock; // create clock
     while (window.isOpen()) {
         sf::Time elapsed = clock.restart();
         const float deltaTime = elapsed.asSeconds(); // amount of time that passed between the last frame and the current one
-        constexpr float gravity = 9.81f;
 
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -32,46 +47,45 @@ int main() {
             }
         }
 
-        sf::Vector2f& pos = position; // reference (nickname) to position
+        for (particle &p : particles) {
+            constexpr float gravity = 9.81f;
+            const float SF = 100.f; // S.F for pixels
 
-        velocity.y += gravity * deltaTime;
-        pos.y += velocity.y * deltaTime * 100.f; // 100.f is a scale factor for pixels
-        pos.x += velocity.x * deltaTime * 100.f;
+            // 1. Update velocity (no scale factor here)
+            p.velocity.y += gravity * deltaTime;
 
-        if (pos.y > windowHeight - radius) {
-            pos.y = windowHeight - radius; // snap to floor
-            velocity.y *= -0.8f; // bounce
+            // 2. Update position (apply scale factor here so 1 unit = 100 pixels)
+            p.position.y += p.velocity.y * deltaTime * SF;
+            p.position.x += p.velocity.x * deltaTime * SF; // Fixed from velocity.x to position.x
 
-            // stop jittering if the bounce is weak
-            if (std::abs(velocity.y) < 2.0f) { // abs is absolute value -> cmath
-                velocity.y = 0.0f;
+            // Floor Collision (adjusted for radius so it doesn't sink into the floor)
+            if (p.position.y > windowHeight - p.radius) {
+                p.position.y = windowHeight - p.radius;
+                p.velocity.y *= -0.8f;
+                if (std::abs(p.velocity.y) < 2.0f) p.velocity.y = 0.0f;
             }
+
+            // Wall Collisions (adjusted for radius)
+            if (p.position.x > windowWidth - p.radius) {
+                p.position.x = windowWidth - p.radius;
+                p.velocity.x *= -0.8f;
+                if (std::abs(p.velocity.x) < 2.0f) p.velocity.x = 0.0f;
+            } else if (p.position.x < p.radius) {
+                p.position.x = p.radius;
+                p.velocity.x *= -0.8f;
+                if (std::abs(p.velocity.x) < 2.0f) p.velocity.x = 0.0f;
+            }
+
+            // Sync shape to math position
+            p.shape.setPosition(p.position);
         }
 
-        if (pos.x > windowWidth - radius) {
-            pos.x = windowWidth - radius;
-            velocity.x *= -0.8f;
-
-            if (std::abs(velocity.x) < 2.0f) { // abs is absolute value -> cmath
-                velocity.x = 0.0f;
-            }
+        // Draw
+        window.clear(sf::Color::White);
+        for (particle &p : particles) {
+            window.draw(p.shape);
         }
-
-        if (pos.x < radius) { // ???
-            pos.x = radius;
-            velocity.x *= -0.8f;
-
-            if (std::abs(velocity.x) < 2.0f) {
-                velocity.x = 0.0f;
-            }
+        window.display();
         }
-
-        circle.setPosition(position);
-
-    window.clear(sf::Color::White);
-    window.draw(circle);
-    window.display();
-
-    }
     return 0;
-}
+    }

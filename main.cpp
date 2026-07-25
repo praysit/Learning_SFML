@@ -30,11 +30,6 @@ int main() {
 
     particles.push_back(particle(100.f, 50.f));
     particles.push_back(particle(200.f, 50.f));
-    particles.push_back(particle(300.f, 50.f));
-    particles.push_back(particle(400.f, 50.f));
-    particles.push_back(particle(500.f, 50.f));
-    particles.push_back(particle(600.f, 50.f));
-    particles.push_back(particle(700.f, 50.f));
 
     sf::Clock clock; // create clock
     while (window.isOpen()) {
@@ -47,6 +42,7 @@ int main() {
             }
         }
 
+
         for (particle &p : particles) {
             constexpr float gravity = 9.81f;
             const float SF = 100.f; // S.F for pixels
@@ -58,34 +54,38 @@ int main() {
             p.position.y += p.velocity.y * deltaTime * SF;
             p.position.x += p.velocity.x * deltaTime * SF; // Fixed from velocity.x to position.x
 
-            // Floor Collision (adjusted for radius so it doesn't sink into the floor)
-            if (p.position.y > windowHeight - p.radius) {
-                p.position.y = windowHeight - p.radius;
-                p.velocity.y *= -0.8f;
-                if (std::abs(p.velocity.y) < 2.0f) p.velocity.y = 0.0f;
+            // Outer loop picks the first particle (Particle A)
+            for (size_t i = 0; i < particles.size(); ++i) {
+
+                // Inner loop picks Particle B
+                for (size_t j = i + 1; j < particles.size(); ++j) {
+
+                    // References for particles
+                    particle &pA = particles[i];
+                    particle &pB = particles[j];
+
+                    // Now put your Phase 2 (Distance check) logic right here!
+                    float differenceX = pA.position.x - pB.position.x;
+                    float differenceY = pA.position.y - pB.position.y;
+
+                    float totalDistance = sqrt(pow(differenceX, 2) + pow(differenceY, 2));
+                    float minDistance = pA.radius + pB.radius;
+
+                    if (totalDistance < minDistance) {
+                        float overlap = totalDistance - minDistance;
+                        
+                    }
+
+                }
             }
 
-            // Wall Collisions (adjusted for radius)
-            if (p.position.x > windowWidth - p.radius) {
-                p.position.x = windowWidth - p.radius;
-                p.velocity.x *= -0.8f;
-                if (std::abs(p.velocity.x) < 2.0f) p.velocity.x = 0.0f;
-            } else if (p.position.x < p.radius) {
-                p.position.x = p.radius;
-                p.velocity.x *= -0.8f;
-                if (std::abs(p.velocity.x) < 2.0f) p.velocity.x = 0.0f;
+            // Draw
+            window.clear(sf::Color::White);
+            for (particle &p : particles) {
+                window.draw(p.shape);
             }
-
-            // Sync shape to math position
-            p.shape.setPosition(p.position);
+            window.display();
         }
-
-        // Draw
-        window.clear(sf::Color::White);
-        for (particle &p : particles) {
-            window.draw(p.shape);
-        }
-        window.display();
-        }
-    return 0;
+        return 0;
     }
+}
